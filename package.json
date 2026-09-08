@@ -1,7 +1,7 @@
 {
   "name": "safe-env",
   "version": "0.1.0",
-  "description": "Type-safe environment variable validation for Node.js applications.",
+  "description": "Type-safe environment variable validation for Node.js & TypeScript",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -15,9 +15,10 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
@@ -32,9 +33,10 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.0",
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.0"
   }
 }
