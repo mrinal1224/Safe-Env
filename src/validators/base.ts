@@ -3,6 +3,9 @@ export abstract class BaseValidator<T> {
   protected hasDefault = false;
   protected defaultValue!: T;
 
+  readonly __safeEnvOutput!: T;
+  readonly __safeEnvOptional!: false;
+
   optional(): OptionalValidator<T, this> {
     this.isOptional = true;
     return this as OptionalValidator<T, this>;
@@ -30,9 +33,9 @@ export abstract class BaseValidator<T> {
 }
 
 export type OptionalValidator<T, V extends BaseValidator<T>> = V & {
-  readonly __optional?: true;
+  readonly __safeEnvOptional: true;
 };
 
 export type DefaultValidator<T, V extends BaseValidator<T>> = V & {
-  readonly __default?: T;
+  readonly __safeEnvDefault: true;
 };
