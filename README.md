@@ -2,12 +2,13 @@
 
 > Type-safe environment variable validation for Node.js & TypeScript.
 
-Stop discovering missing or invalid `.env` variables after your application has already started. **Safe Env** is designed to validate, parse, and type your environment configuration at startup.
+Stop discovering missing or invalid `.env` variables after your application has already started. **Safe Env** validates and parses environment configuration at startup while giving you inferred TypeScript types.
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/safe-env"><img src="https://img.shields.io/npm/v/safe-env?style=for-the-badge&label=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/@mrinal/safe-env"><img src="https://img.shields.io/npm/v/@mrinal/safe-env?style=for-the-badge&label=npm" alt="npm version" /></a>
   <a href="https://github.com/mrinal1224/Safe-Env/stargazers"><img src="https://img.shields.io/github/stars/mrinal1224/Safe-Env?style=for-the-badge" alt="GitHub stars" /></a>
   <a href="https://github.com/mrinal1224/Safe-Env/blob/main/LICENSE"><img src="https://img.shields.io/github/license/mrinal1224/Safe-Env?style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/mrinal1224/Safe-Env/actions"><img src="https://img.shields.io/github/actions/workflow/status/mrinal1224/Safe-Env/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI status" /></a>
 </p>
 
 ---
@@ -22,36 +23,30 @@ const jwtSecret = process.env.JWT_SECRET;
 const databaseUrl = process.env.DATABASE_URL;
 ```
 
-It works, until it doesn't.
+Environment variables are exposed as strings and can be missing, malformed, or inconsistent with what your application expects.
 
-- Environment variables are always read as strings.
-- Required variables can be missing.
-- Invalid values are discovered at runtime.
-- There is no schema describing the application's configuration.
-- Your editor cannot reliably tell you what type a value has.
-
-A production application should **fail fast on invalid configuration**, before it starts serving traffic.
-
-That's the problem Safe Env is built to solve.
+Safe Env gives you one schema for both runtime validation and TypeScript inference.
 
 ---
 
-## ✨ What Safe Env Aims to Provide
+## ✨ Quick Start
 
-Define your configuration once and get validation + type inference from the same schema.
+```bash
+npm install @mrinal/safe-env
+```
 
 ```ts
-import { createEnv, z } from "safe-env";
+import { createEnv, z } from "@mrinal/safe-env";
 
 export const env = createEnv({
   PORT: z.number().default(3000),
   JWT_SECRET: z.string().min(32),
-  NODE_ENV: z.enum(["development", "production"]),
+  NODE_ENV: z.enum(["development", "production"] as const),
   DEBUG: z.boolean().optional(),
 });
 ```
 
-The resulting object is typed from the schema:
+The result is inferred automatically:
 
 ```ts
 env.PORT        // number
@@ -59,10 +54,6 @@ env.JWT_SECRET  // string
 env.NODE_ENV    // "development" | "production"
 env.DEBUG       // boolean | undefined
 ```
-
-The goal is simple:
-
-> **Invalid configuration should stop your application before invalid state reaches production.**
 
 ---
 
@@ -75,131 +66,96 @@ process.env
 Schema Definition
     │
     ▼
-Parse & Validate
+Parse + Validate
     │
     ├── ✅ Valid → Typed Config
     │
     └── ❌ Invalid → SafeEnvError
 ```
 
-Safe Env sits at the application boundary. Instead of scattering `process.env.*` throughout the codebase, you create one trusted configuration object and consume that object everywhere else.
-
----
-
-## 📦 Installation
-
-```bash
-npm install safe-env
-```
-
-or:
-
-```bash
-pnpm add safe-env
-```
-
-or:
-
-```bash
-yarn add safe-env
-```
-
----
-
-## 🚀 Basic Usage
-
-```ts
-import { createEnv, z } from "safe-env";
-
-const env = createEnv({
-  PORT: z.number().default(3000),
-  DATABASE_URL: z.string(),
-  JWT_SECRET: z.string().min(32),
-});
-
-console.log(env.PORT);
-```
-
-A required value that is missing should produce a clear startup error instead of an ambiguous runtime failure.
-
-Example:
-
-```text
-SafeEnvError
-
-Configuration validation failed
-
-JWT_SECRET
-  ✖ Required environment variable is missing
-  Expected: string (minimum length: 32)
-```
+Create the configuration object once and use `env` throughout the rest of your application instead of reading `process.env` everywhere.
 
 ---
 
 ## 🔧 Validators
-
-The initial API is intentionally small and focused.
 
 | Validator | Example |
 | --- | --- |
 | String | `z.string()` |
 | Number | `z.number()` |
 | Boolean | `z.boolean()` |
-| Enum | `z.enum(["development", "production"])` |
+| Enum | `z.enum(["development", "production"] as const)` |
 | Optional | `z.string().optional()` |
 | Default | `z.number().default(3000)` |
 | Minimum length | `z.string().min(32)` |
 | Maximum length | `z.string().max(100)` |
 
-More validators can be added later without changing the core mental model.
+---
+
+## ❌ Validation Errors
+
+Safe Env validates the complete schema and reports configuration problems together, so you can fix several variables in one run.
+
+Example:
+
+```text
+[safe-env] environment: Invalid environment configuration:
+  • [safe-env] PORT: must be a valid finite number, received "abc"
+  • [safe-env] JWT_SECRET: Missing required environment variable: JWT_SECRET
+```
+
+> Do not include secret values in custom error messages or logs in production.
 
 ---
 
-## 🎯 Design Goals
+## 📦 Package Support
 
-### 1. TypeScript First
+Safe Env is shipped as a small TypeScript library with:
 
-The schema should drive TypeScript inference, so developers get useful types without writing duplicate interfaces.
+- ESM support
+- CommonJS support
+- Generated declaration files
+- Node.js `>=20`
+- No runtime dependencies
 
-### 2. Fail Fast
+---
 
-Configuration errors should be reported during application startup rather than several minutes later when a feature happens to access the missing variable.
+## 🧪 Development
 
-### 3. Small API Surface
+```bash
+git clone https://github.com/mrinal1224/Safe-Env.git
+cd Safe-Env
+npm install
+npm run typecheck
+npm test
+npm run build
+```
 
-The package should be easy to learn. A developer should understand the core API in a few minutes.
+For coverage:
 
-### 4. Excellent Developer Experience
+```bash
+npm run coverage
+```
 
-Validation errors should answer three questions immediately:
-
-1. Which variable is wrong?
-2. What did Safe Env receive?
-3. What was expected?
-
-### 5. Runtime Safety + Compile-Time Types
-
-TypeScript alone cannot validate values coming from the process environment at runtime. Safe Env is designed to bridge that gap.
+GitHub Actions runs typechecking, tests and the package build for pushes to `main` and pull requests.
 
 ---
 
 ## 🗺️ Roadmap
 
-### v0.1 — Core
+### v0.1
 
-- [x] Package foundation
-- [x] TypeScript build setup
-- [ ] `createEnv()`
-- [ ] String validator
-- [ ] Number validator
-- [ ] Boolean validator
-- [ ] Enum validator
-- [ ] Optional values
-- [ ] Default values
-- [ ] Type inference
-- [ ] Structured validation errors
+- [x] Runtime parsing
+- [x] String / number / boolean validators
+- [x] Enum validator
+- [x] Optional values
+- [x] Default values
+- [x] String length constraints
+- [x] Aggregated validation errors
+- [x] Type inference
+- [x] ESM + CommonJS package exports
 
-### v0.2 — More Validation
+### v0.2
 
 - [ ] URL validator
 - [ ] Email validator
@@ -207,83 +163,21 @@ TypeScript alone cannot validate values coming from the process environment at r
 - [ ] Custom validators
 - [ ] Transformations
 - [ ] Nested configuration
+- [ ] Better error metadata
 
-### v1.0 — Production Ready
+### v1.0
 
-- [ ] Comprehensive test suite
-- [ ] High test coverage
-- [ ] ESM + CommonJS verification
-- [ ] Automated releases with GitHub Actions
+- [ ] Stable API
+- [ ] Comprehensive integration tests
 - [ ] Documentation site
+- [ ] Automated semantic releases
 - [ ] NestJS integration
-- [ ] Stable public API
-
----
-
-## 🏗️ Project Structure
-
-```text
-Safe-Env/
-├── src/
-│   ├── createEnv.ts
-│   ├── parser.ts
-│   ├── types.ts
-│   ├── errors.ts
-│   └── validators/
-│       ├── base.ts
-│       ├── string.ts
-│       ├── number.ts
-│       ├── boolean.ts
-│       └── enum.ts
-│
-├── tests/
-├── examples/
-├── package.json
-├── tsconfig.json
-├── tsup.config.ts
-└── README.md
-```
-
----
-
-## 🧪 Development
-
-Clone the repository:
-
-```bash
-git clone https://github.com/mrinal1224/Safe-Env.git
-cd Safe-Env
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Run the type checker:
-
-```bash
-npm run typecheck
-```
-
-Run tests:
-
-```bash
-npm test
-```
-
-Build the package:
-
-```bash
-npm run build
-```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome.
+Contributions are welcome. Please keep the public API small and predictable.
 
 Before opening a pull request:
 
@@ -292,8 +186,6 @@ npm run typecheck
 npm test
 npm run build
 ```
-
-Please keep changes focused and preserve the package's small, predictable API.
 
 ---
 
@@ -304,8 +196,6 @@ Please keep changes focused and preserve the package's small, predictable API.
 Software Engineer · Educator · Open Source Builder
 
 GitHub: [@mrinal1224](https://github.com/mrinal1224)
-
-Safe Env is part of an ongoing effort to build small, useful developer tools and learn deeply by shipping them.
 
 ---
 
