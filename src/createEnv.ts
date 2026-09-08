@@ -17,13 +17,17 @@ export function createEnv<T extends Record<string, AnyValidator>>(
         continue;
       }
 
-      throw error;
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error(String(error));
     }
   }
 
   if (errors.length > 0) {
     const message = errors.map((error) => `  • ${error.message}`).join("\n");
-    throw new Error(`[safe-env] Invalid environment configuration:\n${message}`);
+    throw new SafeEnvError("environment", `Invalid environment configuration:\n${message}`);
   }
 
   return result as InferEnv<T>;
