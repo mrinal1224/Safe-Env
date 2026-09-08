@@ -1,33 +1,38 @@
-export type ValidatorOutput<T> = T;
-
-export abstract class BaseValidator<T, TOutput = T> {
+export abstract class BaseValidator<T> {
   protected isOptional = false;
   protected hasDefault = false;
   protected defaultValue!: T;
 
-  optional(): BaseValidator<T, T | undefined> {
+  optional(): OptionalValidator<T, this> {
     this.isOptional = true;
-    return this as unknown as BaseValidator<T, T | undefined>;
+    return this as OptionalValidator<T, this>;
   }
 
-  default(value: T): BaseValidator<T, T> {
+  default(value: T): DefaultValidator<T, this> {
     this.defaultValue = value;
     this.hasDefault = true;
-    this.isOptional = false;
-    return this as unknown as BaseValidator<T, T>;
+    return this as DefaultValidator<T, this>;
   }
 
-  protected resolveUndefined(key: string): TOutput {
+  protected resolveUndefined(key: string): T | undefined {
     if (this.hasDefault) {
-      return this.defaultValue as TOutput;
+      return this.defaultValue;
     }
 
     if (this.isOptional) {
-      return undefined as TOutput;
+      return undefined;
     }
 
     throw new Error(`[safe-env] Missing required environment variable: ${key}`);
   }
 
-  abstract parse(value: string | undefined, key: string): TOutput;
+  abstract parse(value: string | undefined, key: string): T | undefined;
 }
+
+export type OptionalValidator<T, V extends BaseValidator<T>> = V & {
+  readonly __optional?: true;
+};
+
+export type DefaultValidator<T, V extends BaseValidator<T>> = V & {
+  readonly __default?: T;
+};
