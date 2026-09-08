@@ -1,7 +1,7 @@
 {
-  "name": "safe-env",
+  "name": "@mrinal/safe-env",
   "version": "0.1.0",
-  "description": "Type-safe environment variable validation for Node.js & TypeScript",
+  "description": "Type-safe environment variable validation for Node.js and TypeScript.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -13,9 +13,14 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
@@ -23,14 +28,31 @@
     "lint": "eslint ."
   },
   "keywords": [
-    "environment-variables",
     "env",
+    "environment-variables",
+    "environment",
     "typescript",
     "validation",
+    "configuration",
     "nodejs",
-    "configuration"
+    "config"
   ],
+  "author": "Mrinal Bhattacharya",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrinal1224/Safe-Env.git"
+  },
+  "homepage": "https://github.com/mrinal1224/Safe-Env#readme",
+  "bugs": {
+    "url": "https://github.com/mrinal1224/Safe-Env/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.1.0",
